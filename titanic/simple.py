@@ -5,10 +5,22 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+torch.manual_seed(42)
+
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 train_data.dropna(subset=["Sex"], inplace=True)
-train_data["Sex"] = train_data["Sex"].apply(lambda x: 0 if x == "male" else 1)
 
+
+def clean(df):
+    df["Sex"] = df["Sex"].apply(lambda x: 0 if x == "male" else 1)
+    return df
+
+
+def prepare(df):
+    return torch.tensor(df[["Sex", "Pclass"]].values.astype(float)).float().view(-1, 2)
+
+
+train_data = clean(train_data)
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 
 
@@ -24,9 +36,7 @@ class SimpleNet(nn.Module):
 
 model = SimpleNet()
 
-X_train = (
-    torch.tensor(train_data[["Sex", "Pclass"]].values.astype(float)).float().view(-1, 2)
-)
+X_train = prepare(train_data)
 y_train = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
 
 criterion = nn.BCELoss()
@@ -41,10 +51,8 @@ for i, epoch in enumerate(range(1000)):
     loss.backward()
     optimizer.step()
 
-test_data["Sex"] = test_data["Sex"].apply(lambda x: 0 if x == "male" else 1)
-X_test = (
-    torch.tensor(test_data[["Sex", "Pclass"]].values.astype(float)).float().view(-1, 2)
-)
+test_data = clean(test_data)
+X_test = prepare(test_data)
 
 with torch.no_grad():
     test_output = model(X_test)
