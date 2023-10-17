@@ -15,7 +15,7 @@ test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 class SimpleNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(1, 1)
+        self.fc1 = nn.Linear(2, 1)
 
     def forward(self, x):
         x = torch.sigmoid(self.fc1(x))
@@ -24,10 +24,10 @@ class SimpleNet(nn.Module):
 
 model = SimpleNet()
 
-X_train = torch.tensor(train_data["Sex"].values.astype(float)).float().view(-1, 1)
+X_train = (
+    torch.tensor(train_data[["Sex", "Pclass"]].values.astype(float)).float().view(-1, 2)
+)
 y_train = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
-
-assert X_train.shape == y_train.shape
 
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
@@ -42,7 +42,9 @@ for i, epoch in enumerate(range(1000)):
     optimizer.step()
 
 test_data["Sex"] = test_data["Sex"].apply(lambda x: 0 if x == "male" else 1)
-X_test = torch.tensor(test_data["Sex"].values.astype(float)).float().view(-1, 1)
+X_test = (
+    torch.tensor(test_data[["Sex", "Pclass"]].values.astype(float)).float().view(-1, 2)
+)
 
 with torch.no_grad():
     test_output = model(X_test)
