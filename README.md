@@ -25,7 +25,7 @@ sudo chown root:wheel /etc/synthetic.conf
 
 ## project.py
 
-The entry point to performing actions in this repo. It's named `project.py` in the spirit of `pyproject.toml`. It uses [Google's Fire](https://github.com/google/python-fire) to automatically create the CLI interface. It uses the Kaggle API ([Kaggle](https://www.kaggle.com/docs/api), [GitHub](https://github.com/Kaggle/kaggle-api)) to interact with Kaggle, and can set environment variables for us automatically, which we use to conditionally change code behaviour to optimise for the task at hand. Each folder, besides `input` and `working` (output) in this repo, is a Kaggle competition. Each competition has a uniform API for interacting with it which you can see by running `python project.py`.
+The entry point to performing actions in this repo. It's named `project.py` in the spirit of `pyproject.toml`. It uses [Google's Fire](https://github.com/google/python-fire) to automatically create the CLI interface. It uses the Kaggle API ([Kaggle](https://www.kaggle.com/docs/api), [GitHub](https://github.com/Kaggle/kaggle-api)) to interact with Kaggle, and can set environment variables for us automatically, which we use to conditionally change code behaviour to optimize for the task at hand. Each folder, besides `input` and `working` (output) in this repo, is a Kaggle competition. Each competition has a uniform API for interacting with it which you can see by running `python project.py`.
 
 ## Environment variables
 
@@ -33,4 +33,4 @@ Some variables are defined, so that in certain cases, our notebook can optimize 
 
 ### `SUBMIT`
 
-We are submitting the `submission.csv` to Kaggle, make choices that optimize submission score. Default is unset, or `'0'`.
+We are submitting the `submission.csv` to Kaggle, make choices that optimize submission score. Default is to assume `SUBMIT` is `'1'` if it is not set, so uploaded Kaggle notebooks perform well, otherwise set to `'0'`.
