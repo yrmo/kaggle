@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 import fire
 
@@ -15,6 +16,7 @@ class Project:
         RUN(
             f'kaggle competitions submit -c {competition} -f working/submission.csv -m "{competition}"'
         )
+        sleep(5)
         RUN(f"kaggle competitions submissions {competition}")
 
 
