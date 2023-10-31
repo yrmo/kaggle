@@ -3,16 +3,15 @@ from time import sleep
 
 import fire
 
-
-def RUN(x):
-    os.system(x)
+RUN = lambda x: os.system(x)
 
 
 class Project:
     def run(self, competition):
-        RUN(f"python -m {competition}")
+        RUN(f"export SUBMIT=0; python -m {competition}")
 
     def submit(self, competition):
+        RUN(f"export SUBMIT=1; python -m {competition}")
         RUN(
             f'kaggle competitions submit -c {competition} -f working/submission.csv -m "{competition}"'
         )

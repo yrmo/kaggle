@@ -33,4 +33,4 @@ Some variables are defined, so that in certain cases, our notebook can optimize 
 
 ### `SUBMIT`
 
-We are submitting the `submission.csv` to Kaggle, make choices that optimize submission score. Default is to assume `SUBMIT` is `'1'` if it is not set, so uploaded Kaggle notebooks perform well, otherwise set to `'0'`.
+We are submitting the `submission.csv` to Kaggle, make choices that optimize submission score. If it is not set, set default to `'1'`, so uploaded Kaggle notebooks perform well.

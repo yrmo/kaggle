@@ -1,13 +1,15 @@
 import csv
+from os import environ
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 
-torch.manual_seed(42)
+torch.manual_seed(1337)
 
-# Load and preprocess data
+SUBMIT = int(environ.setdefault("SUBMIT", "1"))
+
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 train_data.dropna(subset=["Sex"], inplace=True)
 
@@ -20,12 +22,15 @@ def prepare(df):
 
 train_data = clean(train_data)
 
-# Split into training and validation sets
-X = prepare(train_data)
-y = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+if not SUBMIT:
+    X = prepare(train_data)
+    y = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+else:
+    X_train = prepare(train_data)
+    y_train = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
 
-class SimpleNet(nn.Module):
+class MLP(nn.Module):
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(2, 1)
@@ -34,33 +39,25 @@ class SimpleNet(nn.Module):
         x = torch.sigmoid(self.fc1(x))
         return x
 
-model = SimpleNet()
-
-# Define loss and optimizer
+model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-# Training loop
 for epoch in range(1000):
-    if epoch % 100 == 0:
-        print(f"{epoch=}")
-
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
     loss.backward()
     optimizer.step()
 
-    # Validate the model
-    with torch.no_grad():
-        val_output = model(X_val)
-        val_loss = criterion(val_output, y_val)
-        val_pred = (val_output > 0.5).float()
-        accuracy = (val_pred == y_val).float().mean()
-        if epoch % 100 == 0:
-            print(f"Validation Loss: {val_loss.item()}, Accuracy: {accuracy.item()}")
+    if not SUBMIT and epoch % 100 == 0:
+        with torch.no_grad():
+            val_output = model(X_val)
+            val_loss = criterion(val_output, y_val)
+            val_pred = (val_output > 0.5).float()
+            accuracy = (val_pred == y_val).float().mean()
+            print(f"{accuracy=}")
 
-# Testing the model
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 test_data = clean(test_data)
 X_test = prepare(test_data)
