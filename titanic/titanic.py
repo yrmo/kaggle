@@ -1,5 +1,6 @@
 import csv
 from os import environ
+
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -13,37 +14,48 @@ SUBMIT = int(environ.setdefault("SUBMIT", "1"))
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 train_data.dropna(subset=["Sex"], inplace=True)
 
+
 def clean(df):
     df["Sex"] = df["Sex"].apply(lambda x: 0 if x == "male" else 1)
     return df
 
+
 def prepare(df):
     return torch.tensor(df[["Sex", "Pclass"]].values.astype(float)).float()
+
 
 train_data = clean(train_data)
 
 if not SUBMIT:
     X = prepare(train_data)
     y = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 else:
     X_train = prepare(train_data)
-    y_train = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
+    y_train = (
+        torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
+    )
+
 
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(2, 1)
+        self.fc1 = nn.Linear(2, 2)
+        self.fc2 = nn.Linear(2, 1)
 
     def forward(self, x):
         x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
         return x
+
 
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-for epoch in range(1000):
+for epoch in range(10000):
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
