@@ -66,7 +66,9 @@ for epoch in range(1000):
             val_loss = criterion(val_output, y_val)
             val_pred = (val_output > 0.5).float()
             val_accuracy = (val_pred == y_val).float().mean()
-            print(f"{val_loss=}", f"{val_accuracy=}")
+            print(
+                f"titanic: L{round(val_loss.item(), 2)} A{round(val_accuracy.item(), 2)}"
+            )
 
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 test_data = clean(test_data)
