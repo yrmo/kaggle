@@ -73,6 +73,8 @@ SEX_MAP = {"male": 0, "female": 1}
 
 
 def clean(df):
+    # TODO
+    df = df.drop(["Name", "Ticket"], axis=1)
     # survival pclass sex Age sibsp parch ticket fare cabin embarked
     df.Sex = df.Sex.map(SEX_MAP)
     # nan: age fare cabin embarkesd
@@ -82,8 +84,12 @@ def clean(df):
         df.Cabin.fillna(CABIN_PREFIX_MODE).apply(lambda x: x[0]).map(CABIN_PREFIX_MAP)
     )
     df.Embarked = df.Embarked.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
-    # TODO remove
     return df
+
+
+# TEST
+train_data = clean(train_data)
+test_data = clean(test_data)
 
 
 def prepare(df):
