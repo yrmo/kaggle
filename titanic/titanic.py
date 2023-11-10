@@ -65,7 +65,6 @@ CABIN_PREFIX_MAP: final = {
         set([x[0] for x in COMBINED.Cabin.unique().tolist() if x is not np.nan])
     )
 }
-
 EMBARKED_MODE: final = COMBINED.Embarked.mode().item()
 EMBARKED_MAP: final = {x: i for i, x in enumerate(COMBINED.Embarked.unique().tolist())}
 train_data.dropna(subset=["Sex"], inplace=True)
@@ -77,8 +76,13 @@ def clean(df):
     # survival pclass sex Age sibsp parch ticket fare cabin embarked
     df.Sex = df.Sex.map(SEX_MAP)
     # nan: age fare cabin embarkesd
-    # df.Embarked = df.Embarked.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
-    # df.Cabin = df.Cabin.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
+    df.Age = df.Age.fillna(MEDIAN_AGE)
+    df.Fare = df.Fare.fillna(MEDIAN_FARE)
+    df.Cabin = (
+        df.Cabin.fillna(CABIN_PREFIX_MODE).apply(lambda x: x[0]).map(CABIN_PREFIX_MAP)
+    )
+    df.Embarked = df.Embarked.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
+    # TODO remove
     return df
 
 
