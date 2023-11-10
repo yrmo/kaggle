@@ -74,7 +74,11 @@ SEX_MAP = {"male": 0, "female": 1}
 
 
 def clean(df):
-    df["Sex"] = df["Sex"].map(SEX_MAP)
+    # survival pclass sex Age sibsp parch ticket fare cabin embarked
+    df.Sex = df.Sex.map(SEX_MAP)
+    # nan: age fare cabin embarkesd
+    # df.Embarked = df.Embarked.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
+    # df.Cabin = df.Cabin.fillna(EMBARKED_MODE).map(EMBARKED_MAP)
     return df
 
 
