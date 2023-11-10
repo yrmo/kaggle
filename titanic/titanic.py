@@ -53,7 +53,7 @@ model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-for epoch in range(1000):
+for epoch in range(10000):
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
