@@ -98,14 +98,15 @@ assert len(train_data.columns) - 1 == len(test_data.columns)
 assert len(train_data.select_dtypes(exclude=["int", "float"]).columns) == 0
 assert len(test_data.select_dtypes(exclude=["int", "float"]).columns) == 0
 print(f"{INPUTS=}")
+TEST_COLUMNS: final = test_data.columns.tolist()
+TRAIN_COLUMNS: final = train_data.columns.tolist()
+print(TEST_COLUMNS, TRAIN_COLUMNS)
 
 
 # %%
 def prepare(df):
-    return torch.tensor(df[["Sex", "Pclass"]].values.astype(float)).float()
+    return torch.tensor(df[TEST_COLUMNS].values.astype(float)).float()
 
-
-train_data = clean(train_data)
 
 if not SUBMIT:
     X = prepare(train_data)
@@ -123,8 +124,8 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(2, 2)
-        self.fc2 = nn.Linear(2, 1)
+        self.fc1 = nn.Linear(INPUTS, INPUTS)
+        self.fc2 = nn.Linear(INPUTS, 1)
 
     def forward(self, x):
         x = torch.sigmoid(self.fc1(x))
@@ -152,7 +153,7 @@ for epoch in range(10000):
             accuracy = (val_pred == y_val).float().mean()
             print(f"{accuracy=}")
 
-test_data = clean(test_data)
+# %%
 X_test = prepare(test_data)
 
 with torch.no_grad():
@@ -166,3 +167,5 @@ with open("/kaggle/working/submission.csv", "w", newline="") as csvfile:
     csvwriter.writerow(["PassengerId", "Survived"])
     for row in submission_data:
         csvwriter.writerow(row)
+
+# %%
