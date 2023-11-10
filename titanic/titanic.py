@@ -56,14 +56,18 @@ COMBINED: final = pd.concat([train_data.drop("Survived", axis=1), test_data], ax
 # play to win
 MEDIAN_AGE: final = COMBINED.Age.median()
 MEDIAN_FARE: final = COMBINED.Fare.median()
+# this is funky, you could probably feature number of rooms, it's weird
+
+CABIN_PREFIX_MODE: final = COMBINED.Cabin.mode().item()[0]
 CABIN_PREFIX_MAP: final = {
     prefix: i
     for i, prefix in enumerate(
         set([x[0] for x in COMBINED.Cabin.unique().tolist() if x is not np.nan])
     )
 }
-MODE_EMBARKED: final = COMBINED.Embarked.mode().item()
 
+EMBARKED_MODE: final = COMBINED.Embarked.mode().item()
+EMBARKED_MAP: final = {x: i for i, x in enumerate(COMBINED.Embarked.unique().tolist())}
 train_data.dropna(subset=["Sex"], inplace=True)
 
 
