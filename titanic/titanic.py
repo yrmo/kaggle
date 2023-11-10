@@ -28,7 +28,9 @@ Some children travelled only with a nanny, therefore parch=0 for them.
 
 import csv
 from os import environ
+from typing import final
 
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -37,9 +39,31 @@ from sklearn.model_selection import train_test_split
 
 torch.manual_seed(1337)
 
-SUBMIT = int(environ.setdefault("SUBMIT", "1"))
+SUBMIT: final = int(environ.setdefault("SUBMIT", "1"))
 
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
+test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
+COMBINED: final = pd.concat([train_data.drop("Survived", axis=1), test_data], axis=0)
+
+# for column in combined.columns:
+#     if combined[column].isna().any():
+#         print(f"{column=} has NaN values")
+# column='Age' has NaN values
+# column='Fare' has NaN values
+# column='Cabin' has NaN values
+# column='Embarked' has NaN values
+
+# play to win
+MEDIAN_AGE: final = COMBINED.Age.median()
+MEDIAN_FARE: final = COMBINED.Fare.median()
+CABIN_PREFIX_MAP: final = {
+    prefix: i
+    for i, prefix in enumerate(
+        set([x[0] for x in COMBINED.Cabin.unique().tolist() if x is not np.nan])
+    )
+}
+MODE_EMBARKED: final = COMBINED.Embarked.mode().item()
+
 train_data.dropna(subset=["Sex"], inplace=True)
 
 
@@ -98,7 +122,6 @@ for epoch in range(10000):
             accuracy = (val_pred == y_val).float().mean()
             print(f"{accuracy=}")
 
-test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 test_data = clean(test_data)
 X_test = prepare(test_data)
 
