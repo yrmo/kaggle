@@ -25,7 +25,7 @@ Parent = mother, father
 Child = daughter, son, stepdaughter, stepson
 Some children travelled only with a nanny, therefore parch=0 for them.
 """
-
+# %%
 import csv
 from os import environ
 from typing import final
@@ -37,7 +37,8 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 
-torch.manual_seed(1337)
+RNG = 1337
+torch.manual_seed(RNG)
 
 SUBMIT: final = int(environ.setdefault("SUBMIT", "1"))
 
@@ -87,11 +88,19 @@ def clean(df):
     return df
 
 
-# TEST
+# %%
 train_data = clean(train_data)
 test_data = clean(test_data)
 
+# %%
+INPUTS: final = len(test_data.columns)
+assert len(train_data.columns) - 1 == len(test_data.columns)
+assert len(train_data.select_dtypes(exclude=["int", "float"]).columns) == 0
+assert len(test_data.select_dtypes(exclude=["int", "float"]).columns) == 0
+print(f"{INPUTS=}")
 
+
+# %%
 def prepare(df):
     return torch.tensor(df[["Sex", "Pclass"]].values.astype(float)).float()
 
@@ -102,7 +111,7 @@ if not SUBMIT:
     X = prepare(train_data)
     y = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
     X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42
+        X, y, test_size=0.2, random_state=RNG
     )
 else:
     X_train = prepare(train_data)
@@ -123,6 +132,7 @@ class MLP(nn.Module):
         return x
 
 
+# %%
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
