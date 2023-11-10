@@ -70,9 +70,11 @@ EMBARKED_MODE: final = COMBINED.Embarked.mode().item()
 EMBARKED_MAP: final = {x: i for i, x in enumerate(COMBINED.Embarked.unique().tolist())}
 train_data.dropna(subset=["Sex"], inplace=True)
 
+SEX_MAP = {"male": 0, "female": 1}
+
 
 def clean(df):
-    df["Sex"] = df["Sex"].apply(lambda x: 0 if x == "male" else 1)
+    df["Sex"] = df["Sex"].map(SEX_MAP)
     return df
 
 
