@@ -189,13 +189,18 @@ EPOCHS: Final = 50000
 val_losses = []
 losses = []
 epochs = []
+
+PATIENCE: Final = 2
+best_loss = float("inf")
+counter = 0
+best_model_state = None
+best_model_epoch = None
+
 for epoch in range(EPOCHS):
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
     loss.backward()
-    if SUBMIT and epoch % (EPOCHS // 10) == 0:
-        print(f"titanic: L{round(loss.item(), 3)}")
     optimizer.step()
 
     if not SUBMIT and epoch % (EPOCHS // 10) == 0:
@@ -204,13 +209,29 @@ for epoch in range(EPOCHS):
             val_loss = criterion(val_output, y_val)
             val_pred = (val_output > 0.5).float()
             val_accuracy = (val_pred == y_val).float().mean()
+
             print(
-                f"titanic: L{round(val_loss.item(), 3)} A{round(val_accuracy.item(), 3)}"
+                f"titanic: E{epoch} L{round(val_loss.item(), 3)} A{round(val_accuracy.item(), 3)}"
             )
 
             losses.append(loss.item())
             epochs.append(epoch)
             val_losses.append(val_loss.item())
+
+            if val_loss.item() < best_loss:
+                best_loss = val_loss.item()
+                counter = 0
+                best_model_state = model.state_dict()
+                best_model_epoch = epoch
+            else:
+                counter += 1
+
+            if counter >= PATIENCE:
+                print(f"Early stopping triggered at epoch {epoch}")
+                break
+
+print(f"Best model state @ epoch {best_model_epoch}")
+model.load_state_dict(best_model_state)
 
 X_test = pipeline(test_data)
 
@@ -226,12 +247,13 @@ with open("/kaggle/working/submission.csv", "w", newline="") as csvfile:
     for row in submission_data:
         csvwriter.writerow(row)
 
-plt.plot(epochs, losses, label="Training Loss")
-plt.plot(epochs, val_losses, label="Validation Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.title("Training and Validation Loss per Epoch")
-plt.legend()
 if not SUBMIT:
+    plt.plot(epochs, losses, label="Training Loss")
+    plt.plot(epochs, val_losses, label="Validation Loss")
+    plt.axvline(x=best_model_epoch, color="r", linestyle="--", label="Best Model")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training and Validation Loss per Epoch")
+    plt.legend()
     plt.savefig("./titanic/LossVersusEpoch.png")
     plt.show()
