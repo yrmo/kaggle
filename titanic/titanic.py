@@ -2,40 +2,71 @@ import csv
 from os import environ
 from typing import Final
 
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split  # type: ignore
 
-torch.manual_seed(1337)
+torch.manual_seed(90053)
 
 SUBMIT: Final = int(environ.setdefault("SUBMIT", "1"))
 
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 
-MODE_SEX: Final = train_data.Sex.mode().item()
 MODE_AGE: Final = train_data.Age.mode().item()
+
+MODE_SEX: Final = train_data.Sex.mode().item()
 SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch"]
+MODE_EMBARKED: Final = train_data.Embarked.mode().item()
+EMBARKED: Final = {"C": 0, "Q": 1, "S": 2}
+
+INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch", "Embarked", "Cabin"]
 FEATURES: Final = [
     "Family",  # SibSp + Parch
+    # "Deck",  # Cabin prefix letter, nan -> "U" (unused in train/test)
 ]
+
+CABIN_DECK_PREFIX_MAP: Final = {
+    x: i
+    for i, x in enumerate(
+        set(
+            [
+                x[0]
+                for x in filter(
+                    lambda x: x is not np.nan,
+                    # haha I'm cheating woo!
+                    (pd.concat([train_data, test_data], axis=0))
+                    .Cabin.unique()
+                    .tolist(),
+                )
+            ]
+        )
+    )
+}
+NAN_CABIN_MARKER: Final = "U"
+CABIN_DECK_PREFIX_MAP["U"] = max(CABIN_DECK_PREFIX_MAP.values()) + 1  # type: ignore
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
     df.Age.fillna(MODE_AGE, inplace=True)
+    df.Embarked.fillna(MODE_EMBARKED, inplace=True)
+    df.Cabin.fillna(NAN_CABIN_MARKER, inplace=True)
+
+    assert "Cabin" in df.columns.tolist()
+    df.Cabin = df.Cabin.apply(lambda x: x[0])
 
     assert all(feature in df.columns.tolist() for feature in ["SibSp", "SibSp"])
     df["Family"] = df["SibSp"] + df["Parch"]
 
     assert df[INPUTS].isna().any().any() == False
+    assert df[FEATURES].isna().any().any() == False
     for column in FEATURES:
         assert column in df.columns.tolist()
-    assert df[FEATURES].isna().any().any() == False
 
     df.drop(
         list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
@@ -43,6 +74,8 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
         inplace=True,
     )
     df.Sex = df.Sex.map(SEX)
+    df.Embarked = df.Embarked.map(EMBARKED)
+    df.Cabin = df.Cabin.map(CABIN_DECK_PREFIX_MAP)
 
     # from sklearn.preprocessing import StandardScaler
     for column in INPUTS:
@@ -69,7 +102,7 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        N = len(INPUTS) * 3
+        N = len(INPUTS) * 4
         self.fc1 = nn.Linear(len(INPUTS), N)
         self.fc2 = nn.Linear(N, N)
         self.fc3 = nn.Linear(N, 1)
