@@ -1,5 +1,6 @@
 import csv
 from os import environ
+from typing import final
 
 import pandas as pd
 import torch
@@ -12,16 +13,23 @@ torch.manual_seed(1337)
 SUBMIT = int(environ.setdefault("SUBMIT", "1"))
 
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
-train_data.dropna(subset=["Sex"], inplace=True)
+test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
+MODE_SEX: final = train_data.Sex.mode().item()
+
+SEX: final = {"male": 0, "female": 1}
+
+INPUTS: final = ["Sex", "Pclass"]
 
 
 def clean(df):
-    df["Sex"] = df["Sex"].apply(lambda x: 0 if x == "male" else 1)
+    df.Sex.fillna(MODE_SEX, inplace=True)
+    df.drop(list(set(test_data.columns.tolist()) - set(INPUTS)), axis=1)
+    df.Sex = df.Sex.map(SEX)
     return df
 
 
 def prepare(df):
-    return torch.tensor(df[["Sex", "Pclass"]].values.astype(float)).float()
+    return torch.tensor(df[INPUTS].values.astype(float)).float()
 
 
 train_data = clean(train_data)
@@ -42,25 +50,31 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(2, 1)
+        N = len(INPUTS) * 3
+        self.fc1 = nn.Linear(len(INPUTS), N)
+        self.fc2 = nn.Linear(N, N)
+        self.fc3 = nn.Linear(N, 1)
 
     def forward(self, x):
         x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        x = torch.sigmoid(self.fc3(x))
         return x
 
 
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
+EPOCHS: final = 50000
 
-for epoch in range(10000):
+for epoch in range(EPOCHS):
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
     loss.backward()
     optimizer.step()
 
-    if not SUBMIT and epoch % 100 == 0:
+    if not SUBMIT and epoch % (EPOCHS // 10) == 0:
         with torch.no_grad():
             val_output = model(X_val)
             val_loss = criterion(val_output, y_val)
@@ -70,7 +84,6 @@ for epoch in range(10000):
                 f"titanic: L{round(val_loss.item(), 2)} A{round(val_accuracy.item(), 2)}"
             )
 
-test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
 test_data = clean(test_data)
 X_test = prepare(test_data)
 
