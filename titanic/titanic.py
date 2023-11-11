@@ -28,6 +28,7 @@ INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch", "Embarked", "Cabin"]
 FEATURES: Final = [
     "Family",  # SibSp + Parch
     # "Deck",  # Cabin prefix letter, nan -> "U" (unused in train/test)
+    "AgeMulPclass",
 ]
 
 CABIN_DECK_PREFIX_MAP: Final = {
@@ -62,6 +63,7 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
 
     assert all(feature in df.columns.tolist() for feature in ["SibSp", "SibSp"])
     df["Family"] = df["SibSp"] + df["Parch"]
+    df["AgeMulPclass"] = df["Age"] * df["Pclass"]
 
     assert df[INPUTS].isna().any().any() == False
     assert df[FEATURES].isna().any().any() == False
