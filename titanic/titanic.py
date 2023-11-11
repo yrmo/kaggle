@@ -164,7 +164,7 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        N = len(INPUTS) * 8
+        N = len(INPUTS) * 4
         self.fc1 = nn.Linear(len(INPUTS), N)
         self.fc2 = nn.Linear(N, N)
         self.fc3 = nn.Linear(N, N)
