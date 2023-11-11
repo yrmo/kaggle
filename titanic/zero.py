@@ -17,7 +17,7 @@ net = ZeroNet()
 data = []
 data.append(["PassengerId", "Survived"])
 for i in range(len(pd.read_csv("/kaggle/input/titanic/test.csv"))):
-    data.append([i + 892, int(net(torch.tensor([1], dtype=torch.float32)).item())])
+    data.append([i + 892, int(net(torch.tensor([1], dtype=torch.float32)).item())])  # type: ignore
 
 with open("/kaggle/working/submission.csv", "w", newline="") as csvfile:
     csvwriter = csv.writer(csvfile)
