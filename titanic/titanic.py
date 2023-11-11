@@ -19,14 +19,23 @@ MODE_SEX: Final = train_data.Sex.mode().item()
 MODE_AGE: Final = train_data.Age.mode().item()
 SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp"]
+INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch"]
+FEATURES: Final = [
+    "Family",  # SibSp + Parch
+]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
     df.Age.fillna(MODE_AGE, inplace=True)
 
+    assert all(feature in df.columns.tolist() for feature in ["SibSp", "SibSp"])
+    df["Family"] = df["SibSp"] + df["Parch"]
+
     assert df[INPUTS].isna().any().any() == False
+    for column in FEATURES:
+        assert column in df.columns.tolist()
+    assert df[FEATURES].isna().any().any() == False
 
     df.drop(
         list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
@@ -91,7 +100,7 @@ for epoch in range(EPOCHS):
             val_pred = (val_output > 0.5).float()
             val_accuracy = (val_pred == y_val).float().mean()
             print(
-                f"titanic: L{round(val_loss.item(), 2)} A{round(val_accuracy.item(), 2)}"
+                f"titanic: L{round(val_loss.item(), 3)} A{round(val_accuracy.item(), 3)}"
             )
 
 X_test = pipeline(test_data)
