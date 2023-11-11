@@ -1,4 +1,5 @@
 import csv
+import re
 from os import environ
 from typing import Final
 
@@ -36,10 +37,10 @@ INPUTS: Final = [
     "Cabin",
     "Fare",
     "Name",
+    "Ticket",
 ]
 FEATURES: Final = [
     "Family",  # SibSp + Parch
-    # "Deck",  # Cabin prefix letter, nan -> "U" (unused in train/test)
     "AgeMulPclass",
     "FarePerPerson",
 ]
@@ -79,6 +80,12 @@ HONORS: Final = [
 HONORS_MISC_MARKER: Final = "Misc."
 HONORS_MAP: Final = {honor: i for i, honor in enumerate(HONORS + [HONORS_MISC_MARKER])}
 # [name for name in train_data.Name.tolist() if all(honor not in name for honor in [HONORS])]
+
+TICKET: Final = ["A", "P", "S", "F", "W", "C"]
+TICKET_MAP: Final = {letter: i for i, letter in enumerate(TICKET)}
+NUMERIC_TICKET_MARKER: Final = "N"
+TICKET_MAP[NUMERIC_TICKET_MARKER] = max(TICKET_MAP.values()) + 1  # type: ignore
+# [name for name in train_data.Ticket.tolist() if all(honor not in name for honor in TICKET)]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
@@ -122,6 +129,15 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
 
     df.Name = df.Name.apply(replace_name_with_honor)
     df.Name = df.Name.map(HONORS_MAP)
+
+    def replace_ticket_with_letter(ticket: str) -> str:
+        for letter in TICKET:
+            if letter in ticket:
+                return letter
+        return NUMERIC_TICKET_MARKER
+
+    df.Ticket = df.Ticket.apply(replace_ticket_with_letter)
+    df.Ticket = df.Ticket.map(TICKET_MAP)
 
     # from sklearn.preprocessing import StandardScaler
     for column in INPUTS:
