@@ -29,6 +29,13 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
         inplace=True,
     )
     df.Sex = df.Sex.map(SEX)
+
+    # from sklearn.preprocessing import StandardScaler
+    for column in INPUTS:
+        column_mean = df[column].mean()
+        column_std = df[column].std()
+        df[column] = (df[column] - column_mean) / column_std
+
     return torch.tensor(df[INPUTS].values.astype(float)).float()
 
 
@@ -53,7 +60,7 @@ class MLP(nn.Module):
         self.fc2 = nn.Linear(N, N)
         self.fc3 = nn.Linear(N, 1)
 
-    def forward(self, x):
+    def forward(self, x) -> torch.Tensor:
         x = torch.sigmoid(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
         x = torch.sigmoid(self.fc3(x))
