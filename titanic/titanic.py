@@ -167,7 +167,7 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        N = len(INPUTS + FEATURES) * 4
+        N = len(INPUTS + FEATURES)
         self.fc1 = nn.Linear(len(INPUTS + FEATURES), N)
         self.fc2 = nn.Linear(N, N * 2)
         self.fc3 = nn.Linear(N * 2, N)
@@ -184,7 +184,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 35000
+EPOCHS: Final = 40000
 
 val_losses = []
 losses = []
