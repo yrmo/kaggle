@@ -188,6 +188,8 @@ for epoch in range(EPOCHS):
     output = model(X_train)
     loss = criterion(output, y_train)
     loss.backward()
+    if SUBMIT and epoch % (EPOCHS // 10) == 0:
+        print(f"titanic: L{round(loss.item(), 3)}")
     optimizer.step()
 
     if not SUBMIT and epoch % (EPOCHS // 10) == 0:
