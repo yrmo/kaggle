@@ -113,7 +113,9 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
         assert column in df.columns.tolist()
 
     df.drop(
-        list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
+        list(
+            set(test_data.columns.tolist()) - set(INPUTS + FEATURES + ["PassengerId"])
+        ),
         axis=1,
         inplace=True,
     )
