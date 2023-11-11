@@ -19,14 +19,14 @@ MODE_SEX: Final = train_data.Sex.mode().item()
 MODE_AGE: Final = train_data.Age.mode().item()
 SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: Final = ["Sex", "Pclass", "Age"]
+INPUTS: Final = ["Sex", "Pclass", "Age", "Fare"]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
     df.Age.fillna(MODE_AGE, inplace=True)
 
-    # TODO auto assert guard against nan's
+    assert df[INPUTS].isna().any().any() == False
 
     df.drop(
         list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
