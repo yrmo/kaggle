@@ -19,7 +19,7 @@ MODE_SEX: Final = train_data.Sex.mode().item()
 MODE_AGE: Final = train_data.Age.mode().item()
 SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: Final = ["Sex", "Pclass", "Age", "Fare"]
+INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp"]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
