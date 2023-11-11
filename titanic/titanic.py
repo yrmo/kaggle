@@ -102,22 +102,24 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        N = len(INPUTS) * 4
+        N = len(INPUTS) * 8
         self.fc1 = nn.Linear(len(INPUTS), N)
         self.fc2 = nn.Linear(N, N)
-        self.fc3 = nn.Linear(N, 1)
+        self.fc3 = nn.Linear(N, N)
+        self.fc4 = nn.Linear(N, 1)
 
     def forward(self, x) -> torch.Tensor:
         x = torch.sigmoid(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
         x = torch.sigmoid(self.fc3(x))
+        x = torch.sigmoid(self.fc4(x))
         return x
 
 
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 50000
+EPOCHS: Final = 100000
 
 for epoch in range(EPOCHS):
     optimizer.zero_grad()
