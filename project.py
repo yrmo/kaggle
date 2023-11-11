@@ -18,6 +18,10 @@ class Project:
         sleep(5)
         RUN(f"kaggle competitions submissions {competition}")
 
+    def type(self):
+        RUN("python -m mypy --install-types")
+        RUN("python -m mypy .")
+
 
 if __name__ == "__main__":
     fire.Fire(Project)
