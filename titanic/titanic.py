@@ -14,15 +14,20 @@ SUBMIT: Final = int(environ.setdefault("SUBMIT", "1"))
 
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
-MODE_SEX: Final = train_data.Sex.mode().item()
 
+MODE_SEX: Final = train_data.Sex.mode().item()
+MODE_AGE: Final = train_data.Age.mode().item()
 SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: Final = ["Sex", "Pclass"]
+INPUTS: Final = ["Sex", "Pclass", "Age"]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
+    df.Age.fillna(MODE_AGE, inplace=True)
+
+    # TODO auto assert guard against nan's
+
     df.drop(
         list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
         axis=1,
