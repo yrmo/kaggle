@@ -54,6 +54,20 @@ CABIN_DECK_PREFIX_MAP: Final = {
 NAN_CABIN_MARKER: Final = "U"
 CABIN_DECK_PREFIX_MAP["U"] = max(CABIN_DECK_PREFIX_MAP.values()) + 1  # type: ignore
 
+# honors with at least two examples (exclude... Countess., Capt.,...)
+HONORS = [
+    "Mr.",
+    "Mrs.",
+    "Miss.",
+    "Master.",
+    "Dr.",
+    "Col.",
+    "Mlle.",
+    "Rev.",
+    "Major.",
+]
+# [name for name in train_data.Name.tolist() if all(honor not in name for honor in [HONORS])]
+
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
