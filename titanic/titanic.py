@@ -184,7 +184,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 50000
+EPOCHS: Final = 35000
 
 val_losses = []
 losses = []
@@ -202,6 +202,9 @@ for epoch in range(EPOCHS):
     loss = criterion(output, y_train)
     loss.backward()
     optimizer.step()
+
+    if epoch % (EPOCHS // 10) == 0:
+        print(f"{round(loss.item(), 3)}")
 
     if not SUBMIT and epoch % (EPOCHS // 10) == 0:
         with torch.no_grad():
@@ -230,8 +233,9 @@ for epoch in range(EPOCHS):
                 print(f"Early stopping triggered at epoch {epoch}")
                 break
 
-print(f"Best model state @ epoch {best_model_epoch}")
-model.load_state_dict(best_model_state)
+if not SUBMIT:
+    print(f"Best model state @ epoch {best_model_epoch}")
+    model.load_state_dict(best_model_state)
 
 X_test = pipeline(test_data)
 
