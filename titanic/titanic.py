@@ -3,6 +3,7 @@ import re
 from os import environ
 from typing import Final
 
+import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 import pandas as pd
 import torch
@@ -168,8 +169,8 @@ class MLP(nn.Module):
         super().__init__()
         N = len(INPUTS) * 4
         self.fc1 = nn.Linear(len(INPUTS), N)
-        self.fc2 = nn.Linear(N, N)
-        self.fc3 = nn.Linear(N, N)
+        self.fc2 = nn.Linear(N, N * 2)
+        self.fc3 = nn.Linear(N * 2, N)
         self.fc4 = nn.Linear(N, 1)
 
     def forward(self, x) -> torch.Tensor:
@@ -185,6 +186,9 @@ criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 EPOCHS: Final = 100000
 
+val_losses = []
+losses = []
+epochs = []
 for epoch in range(EPOCHS):
     optimizer.zero_grad()
     output = model(X_train)
@@ -204,6 +208,10 @@ for epoch in range(EPOCHS):
                 f"titanic: L{round(val_loss.item(), 3)} A{round(val_accuracy.item(), 3)}"
             )
 
+            losses.append(loss.item())
+            epochs.append(epoch)
+            val_losses.append(val_loss.item())
+
 X_test = pipeline(test_data)
 
 with torch.no_grad():
@@ -217,3 +225,13 @@ with open("/kaggle/working/submission.csv", "w", newline="") as csvfile:
     csvwriter.writerow(["PassengerId", "Survived"])
     for row in submission_data:
         csvwriter.writerow(row)
+
+plt.plot(epochs, losses, label="Training Loss")
+plt.plot(epochs, val_losses, label="Validation Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training and Validation Loss per Epoch")
+plt.legend()
+if not SUBMIT:
+    plt.savefig("./titanic/LossVersusEpoch.png")
+    plt.show()
