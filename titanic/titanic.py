@@ -26,7 +26,17 @@ EMBARKED: Final = {"C": 0, "Q": 1, "S": 2}
 
 MEAN_FARE: Final = train_data.Fare.mean().item()
 
-INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch", "Embarked", "Cabin", "Fare"]
+INPUTS: Final = [
+    "Sex",
+    "Pclass",
+    "Age",
+    "SibSp",
+    "Parch",
+    "Embarked",
+    "Cabin",
+    "Fare",
+    "Name",
+]
 FEATURES: Final = [
     "Family",  # SibSp + Parch
     # "Deck",  # Cabin prefix letter, nan -> "U" (unused in train/test)
@@ -55,7 +65,7 @@ NAN_CABIN_MARKER: Final = "U"
 CABIN_DECK_PREFIX_MAP["U"] = max(CABIN_DECK_PREFIX_MAP.values()) + 1  # type: ignore
 
 # honors with at least two examples (exclude... Countess., Capt.,...)
-HONORS = [
+HONORS: Final = [
     "Mr.",
     "Mrs.",
     "Miss.",
@@ -66,6 +76,8 @@ HONORS = [
     "Rev.",
     "Major.",
 ]
+HONORS_MISC_MARKER: Final = "Misc."
+HONORS_MAP: Final = {honor: i for i, honor in enumerate(HONORS + [HONORS_MISC_MARKER])}
 # [name for name in train_data.Name.tolist() if all(honor not in name for honor in [HONORS])]
 
 
@@ -101,6 +113,15 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex = df.Sex.map(SEX)
     df.Embarked = df.Embarked.map(EMBARKED)
     df.Cabin = df.Cabin.map(CABIN_DECK_PREFIX_MAP)
+
+    def replace_name_with_honor(name: str) -> str:
+        for honor in HONORS:
+            if honor in name:
+                return honor
+        return HONORS_MISC_MARKER
+
+    df.Name = df.Name.apply(replace_name_with_honor)
+    df.Name = df.Name.map(HONORS_MAP)
 
     # from sklearn.preprocessing import StandardScaler
     for column in INPUTS:
