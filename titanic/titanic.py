@@ -148,7 +148,7 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
         column_std = df[column].std()
         df[column] = (df[column] - column_mean) / column_std
 
-    return torch.tensor(df[INPUTS].values.astype(float)).float()
+    return torch.tensor(df[INPUTS + FEATURES].values.astype(float)).float()
 
 
 if not SUBMIT:
@@ -167,8 +167,8 @@ else:
 class MLP(nn.Module):
     def __init__(self):
         super().__init__()
-        N = len(INPUTS) * 4
-        self.fc1 = nn.Linear(len(INPUTS), N)
+        N = len(INPUTS + FEATURES) * 4
+        self.fc1 = nn.Linear(len(INPUTS + FEATURES), N)
         self.fc2 = nn.Linear(N, N * 2)
         self.fc3 = nn.Linear(N * 2, N)
         self.fc4 = nn.Linear(N, 1)
@@ -184,7 +184,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 100000
+EPOCHS: Final = 50000
 
 val_losses = []
 losses = []
