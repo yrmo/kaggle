@@ -21,27 +21,26 @@ SEX: final = {"male": 0, "female": 1}
 INPUTS: final = ["Sex", "Pclass"]
 
 
-def clean(df):
+def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
-    df.drop(list(set(test_data.columns.tolist()) - set(INPUTS)), axis=1)
+    df.drop(
+        list(set(test_data.columns.tolist()) - set(INPUTS + ["PassengerId"])),
+        axis=1,
+        inplace=True,
+    )
     df.Sex = df.Sex.map(SEX)
-    return df
-
-
-def prepare(df):
+    print(df)
     return torch.tensor(df[INPUTS].values.astype(float)).float()
 
 
-train_data = clean(train_data)
-
 if not SUBMIT:
-    X = prepare(train_data)
+    X = pipeline(train_data)
     y = torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 else:
-    X_train = prepare(train_data)
+    X_train = pipeline(train_data)
     y_train = (
         torch.tensor(train_data["Survived"].values.astype(float)).float().view(-1, 1)
     )
@@ -84,8 +83,7 @@ for epoch in range(EPOCHS):
                 f"titanic: L{round(val_loss.item(), 2)} A{round(val_accuracy.item(), 2)}"
             )
 
-test_data = clean(test_data)
-X_test = prepare(test_data)
+X_test = pipeline(test_data)
 
 with torch.no_grad():
     test_output = model(X_test)
