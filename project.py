@@ -1,7 +1,7 @@
 import os
 from time import sleep
 
-import fire
+import fire  # type: ignore
 
 RUN = lambda x: os.system(x)
 

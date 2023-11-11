@@ -1,24 +1,24 @@
 import csv
 from os import environ
-from typing import final
+from typing import Final
 
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split  # type: ignore
 
 torch.manual_seed(1337)
 
-SUBMIT = int(environ.setdefault("SUBMIT", "1"))
+SUBMIT: Final = int(environ.setdefault("SUBMIT", "1"))
 
 train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
 test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
-MODE_SEX: final = train_data.Sex.mode().item()
+MODE_SEX: Final = train_data.Sex.mode().item()
 
-SEX: final = {"male": 0, "female": 1}
+SEX: Final = {"male": 0, "female": 1}
 
-INPUTS: final = ["Sex", "Pclass"]
+INPUTS: Final = ["Sex", "Pclass"]
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
@@ -29,7 +29,6 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
         inplace=True,
     )
     df.Sex = df.Sex.map(SEX)
-    print(df)
     return torch.tensor(df[INPUTS].values.astype(float)).float()
 
 
@@ -64,7 +63,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: final = 50000
+EPOCHS: Final = 50000
 
 for epoch in range(EPOCHS):
     optimizer.zero_grad()
