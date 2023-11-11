@@ -24,11 +24,14 @@ SEX: Final = {"male": 0, "female": 1}
 MODE_EMBARKED: Final = train_data.Embarked.mode().item()
 EMBARKED: Final = {"C": 0, "Q": 1, "S": 2}
 
-INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch", "Embarked", "Cabin"]
+MEAN_FARE: Final = train_data.Fare.mean().item()
+
+INPUTS: Final = ["Sex", "Pclass", "Age", "SibSp", "Parch", "Embarked", "Cabin", "Fare"]
 FEATURES: Final = [
     "Family",  # SibSp + Parch
     # "Deck",  # Cabin prefix letter, nan -> "U" (unused in train/test)
     "AgeMulPclass",
+    "FarePerPerson",
 ]
 
 CABIN_DECK_PREFIX_MAP: Final = {
@@ -57,13 +60,19 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Age.fillna(MODE_AGE, inplace=True)
     df.Embarked.fillna(MODE_EMBARKED, inplace=True)
     df.Cabin.fillna(NAN_CABIN_MARKER, inplace=True)
+    df.Fare.fillna(MEAN_FARE, inplace=True)
 
     assert "Cabin" in df.columns.tolist()
     df.Cabin = df.Cabin.apply(lambda x: x[0])
 
     assert all(feature in df.columns.tolist() for feature in ["SibSp", "SibSp"])
     df["Family"] = df["SibSp"] + df["Parch"]
+
+    assert all(feature in df.columns.tolist() for feature in ["Age", "Pclass"])
     df["AgeMulPclass"] = df["Age"] * df["Pclass"]
+
+    assert all(feature in df.columns.tolist() for feature in ["Fare", "Family"])
+    df["FarePerPerson"] = df["Fare"] / (df["Family"] + 1)
 
     assert df[INPUTS].isna().any().any() == False
     assert df[FEATURES].isna().any().any() == False
