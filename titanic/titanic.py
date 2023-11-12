@@ -44,6 +44,7 @@ FEATURES: Final = [
     "Family",  # SibSp + Parch
     "AgeMulPclass",
     "FarePerPerson",
+    "Child",
 ]
 
 CABIN_DECK_PREFIX_MAP: Final = {
@@ -95,6 +96,9 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Embarked.fillna(MODE_EMBARKED, inplace=True)
     df.Cabin.fillna(NAN_CABIN_MARKER, inplace=True)
     df.Fare.fillna(MEAN_FARE, inplace=True)
+
+    assert "Name" in df.columns.tolist()
+    df["Child"] = df.Name.apply(lambda name: 1 if "Master." in name else 0)
 
     assert "Cabin" in df.columns.tolist()
     df.Cabin = df.Cabin.apply(lambda x: x[0])
@@ -184,7 +188,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 40000
+EPOCHS: Final = 45000
 
 val_losses = []
 losses = []
