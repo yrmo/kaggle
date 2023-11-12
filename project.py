@@ -2,6 +2,7 @@ import os
 import shlex
 import subprocess
 from time import sleep
+from typing import Final
 
 import fire  # type: ignore
 
@@ -31,6 +32,14 @@ class Project:
     def type(self):
         RUN("python -m mypy --install-types")
         RUN("python -m mypy .")
+
+    def data(self, competition):
+        COMP_DIR: Final = f"input/{competition}"
+        os.makedirs(COMP_DIR, exist_ok=True)
+
+        RUN(f"kaggle competitions download -c {competition} -p {COMP_DIR}")
+
+        RUN(f"unzip -o {COMP_DIR}/*.zip -d {COMP_DIR}")
 
 
 if __name__ == "__main__":
