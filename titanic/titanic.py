@@ -45,6 +45,7 @@ FEATURES: Final = [
     "AgeMulPclass",
     "FarePerPerson",
     "Child",
+    "FamilySurvived",
 ]
 
 CABIN_DECK_PREFIX_MAP: Final = {
@@ -90,12 +91,28 @@ TICKET_MAP[NUMERIC_TICKET_MARKER] = max(TICKET_MAP.values()) + 1  # type: ignore
 # [name for name in train_data.Ticket.tolist() if all(honor not in name for honor in TICKET)]
 
 
+def get_families_who_all_survived():
+    train_data["Surname"] = train_data["Name"].apply(lambda x: x.split(",")[0])
+    grouped_data = train_data.groupby("Surname")
+    survival_rates = grouped_data["Survived"].mean()
+    family_sizes = grouped_data.size()
+    families_all_survived = survival_rates[(survival_rates == 1) & (family_sizes > 1)]
+    return {surname: family_sizes[surname] for surname in families_all_survived.index}
+
+
+WHOLE_FAMILY_SURVIVED: Final = list(get_families_who_all_survived().keys())
+
+
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
     df.Sex.fillna(MODE_SEX, inplace=True)
     df.Age.fillna(MODE_AGE, inplace=True)
     df.Embarked.fillna(MODE_EMBARKED, inplace=True)
     df.Cabin.fillna(NAN_CABIN_MARKER, inplace=True)
     df.Fare.fillna(MEAN_FARE, inplace=True)
+
+    df["FamilySurvived"] = df.Name.apply(
+        lambda name: 1 if name.split(",")[0] in WHOLE_FAMILY_SURVIVED else 0
+    )
 
     assert "Name" in df.columns.tolist()
     df["Child"] = df.Name.apply(lambda name: 1 if "Master." in name else 0)
@@ -188,7 +205,7 @@ class MLP(nn.Module):
 model = MLP()
 criterion = nn.BCELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 45000
+EPOCHS: Final = 35000
 
 val_losses = []
 losses = []
