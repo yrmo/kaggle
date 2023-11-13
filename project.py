@@ -23,6 +23,8 @@ class Project:
 
     def submit(self, competition):
         RUN_OUT(f"export SUBMIT=1; python -m {competition}")
+        if "_" in competition:
+            competition = competition.replace("_", "-")
         RUN(
             f'kaggle competitions submit -c {competition} -f working/submission.csv -m "{competition}"'
         )
