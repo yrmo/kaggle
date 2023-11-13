@@ -1,30 +1,45 @@
 import os
 import shlex
 import subprocess
+from functools import wraps
 from time import sleep
 from typing import Final
 
 import fire  # type: ignore
 
-RUN = lambda x: os.system(x)
+
+def echo(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
-def RUN_OUT(x):
-    result = subprocess.run(
-        x, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-    )
-    print(f"{result.stdout}")
-    print(f"{result.stderr}")
+@echo
+def RUN(x):
+    os.system(x)
 
 
 class Project:
+    def check_abbreviations(self, competition):
+        abbreviations = {
+            "house-prices": "house-prices-advanced-regression-techniques",
+        }
+        if "_" in competition:
+            competition = competition.replace("_", "-")
+        if competition in abbreviations.keys():
+            print(f"Abbreviation found: {competition} -> {abbreviations[competition]}")
+            return abbreviations[competition]
+        return competition
+
     def run(self, competition):
         RUN(f"export SUBMIT=0; python -m {competition}")
 
     def submit(self, competition):
-        RUN_OUT(f"export SUBMIT=1; python -m {competition}")
-        if "_" in competition:
-            competition = competition.replace("_", "-")
+        RUN(f"export SUBMIT=1; python -m {competition}")
+        competition = self.check_abbreviations(competition)
         RUN(
             f'kaggle competitions submit -c {competition} -f working/submission.csv -m "{competition}"'
         )
@@ -36,6 +51,7 @@ class Project:
         RUN("python -m mypy .")
 
     def data(self, competition):
+        competition = self.check_abbreviations(competition)
         COMP_DIR: Final = f"input/{competition}"
         os.makedirs(COMP_DIR, exist_ok=True)
 
