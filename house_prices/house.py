@@ -26,6 +26,9 @@ INPUTS = [
     # "OverallCond",  # no improv. A/B tested w/ LotFrontage, LotArea, OverallQual
 ]
 
+MEAN_INPUTS = train_data[INPUTS].mean().copy()
+STD_INPUTS = train_data[INPUTS].std().copy()
+
 if "LotFrontage" in INPUTS:
     MEDIAN_LOT_FRONTAGE = train_data["LotFrontage"].median().item()
 
@@ -36,23 +39,21 @@ print(f"{y_train.size()=}")
 
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
-    X_train = df[INPUTS].copy()
+    X = df[INPUTS].copy()
     if "LotFrontage" in INPUTS:
-        X_train.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
-    print(X_train)
-    for input in INPUTS:
-        # fixes exploding gradients!
-        X_train[input] = (X_train[input] - df[input].mean()) / df[input].std()
-    assert X_train.isna().any().any() == False
-    X_train = torch.tensor(X_train.to_numpy(), dtype=torch.float32)
-    print(X_train)
-    print(f"{X_train.size()=}")
-    assert X_train is not None
-    assert type(X_train) == torch.Tensor
-    return X_train
+        X.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
+    print(X)
+    # fixes exploding gradients!
+    X = (X - MEAN_INPUTS) / STD_INPUTS
+    assert X.isna().any().any() == False
+    return X
 
 
-X_train = pipeline(train_data)
+X_train = torch.tensor(pipeline(train_data).to_numpy(), dtype=torch.float32)
+print(X_train)
+print(f"{X_train.size()=}")
+assert X_train is not None
+assert type(X_train) == torch.Tensor
 
 
 class MLP(nn.Module):
@@ -102,14 +103,7 @@ print(f"{best_epoch=}", f"{best_loss=}")
 submission = pd.DataFrame()
 submission["Id"] = test_data.Id
 with torch.no_grad():
-    X_test = test_data[INPUTS].copy()
-    if "LotFrontage" in INPUTS:
-        X_test.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
-    for input in INPUTS:
-        # fixes exploding gradients!
-        X_test[input] = (X_test[input] - test_data[input].mean()) / test_data[
-            input
-        ].std()
+    X_test = pipeline(test_data[INPUTS])
     print(model(torch.tensor(X_test.to_numpy(), dtype=torch.float32)))
     submission["SalePrice"] = model(
         torch.tensor(X_test.to_numpy(), dtype=torch.float32)
