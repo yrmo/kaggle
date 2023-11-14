@@ -29,9 +29,13 @@ INPUTS = [
 if "LotFrontage" in INPUTS:
     MEDIAN_LOT_FRONTAGE = train_data["LotFrontage"].median().item()
 
+y_train = torch.tensor(train_data[["SalePrice"]].to_numpy(), dtype=torch.float32)
+assert y_train is not None
+assert type(y_train) == torch.Tensor
+print(f"{y_train.size()=}")
+
 
 def pipeline(df: pd.DataFrame) -> torch.Tensor:
-    y_train = torch.tensor(df[["SalePrice"]].to_numpy(), dtype=torch.float32)
     X_train = df[INPUTS].copy()
     if "LotFrontage" in INPUTS:
         X_train.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
@@ -42,15 +46,13 @@ def pipeline(df: pd.DataFrame) -> torch.Tensor:
     assert X_train.isna().any().any() == False
     X_train = torch.tensor(X_train.to_numpy(), dtype=torch.float32)
     print(X_train)
-    print(f"{y_train.size()=}", f"{X_train.size()=}")
+    print(f"{X_train.size()=}")
     assert X_train is not None
-    assert y_train is not None
     assert type(X_train) == torch.Tensor
-    assert type(y_train) == torch.Tensor
-    return y_train, X_train
+    return X_train
 
 
-y_train, X_train = pipeline(train_data)
+X_train = pipeline(train_data)
 
 
 class MLP(nn.Module):
@@ -74,7 +76,7 @@ epochs, losses = [], []
 best_loss = float("inf")
 best_epoch = 0
 
-EPOCHS = 500000
+EPOCHS = 100000
 PATIENCE = 0
 CHECKPOINTS = 15
 for epoch in range(EPOCHS):
@@ -95,9 +97,9 @@ for epoch in range(EPOCHS):
     if epoch % (EPOCHS // CHECKPOINTS) == 0:
         epochs.append(epoch)
         losses.append(loss.item())
-        print(f"house-prices: L{loss.item()}")
+        print(f"house-prices: E{epoch} L{loss.item()}")
 
-print(f"{best_loss=}", f"{best_epoch=}")
+print(f"{best_epoch=}", f"{best_loss=}")
 
 submission = pd.DataFrame()
 submission["Id"] = test_data.Id
