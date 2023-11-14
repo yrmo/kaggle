@@ -60,22 +60,26 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         N = len(INPUTS)
-        self.fc1 = nn.Linear(N, 1)
+        self.fc1 = nn.Linear(len(INPUTS), N)
+        self.fc2 = nn.Linear(N, N)
+        self.fc3 = nn.Linear(N, 1)
 
     def forward(self, x):
-        x = self.fc1(x)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        x = self.fc3(x)
         return x
 
 
 model = Model()
 criterion = nn.MSELoss()
-optimizer = optim.SGD(model.parameters(), lr=0.000005)
+optimizer = optim.SGD(model.parameters(), lr=0.00000005)
 
 epochs, losses = [], []
 best_loss = float("inf")
 best_epoch = 0
 
-EPOCHS = 100000
+EPOCHS = 10000
 PATIENCE = 0
 CHECKPOINTS = 15
 for epoch in range(EPOCHS):
@@ -103,11 +107,9 @@ print(f"{best_epoch=}", f"{best_loss=}")
 submission = pd.DataFrame()
 submission["Id"] = test_data.Id
 with torch.no_grad():
-    X_test = pipeline(test_data[INPUTS])
-    print(model(torch.tensor(X_test.to_numpy(), dtype=torch.float32)))
-    submission["SalePrice"] = model(
-        torch.tensor(X_test.to_numpy(), dtype=torch.float32)
-    )
+    X_test = torch.tensor(pipeline(test_data).to_numpy(), dtype=torch.float32)
+    print(model(X_test))
+    submission["SalePrice"] = model(X_test)
 submission.to_csv("/kaggle/working/submission.csv", index=False)
 
 if not SUBMIT:
