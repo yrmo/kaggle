@@ -29,24 +29,28 @@ INPUTS = [
 if "LotFrontage" in INPUTS:
     MEDIAN_LOT_FRONTAGE = train_data["LotFrontage"].median().item()
 
-y_train = torch.tensor(train_data[["SalePrice"]].to_numpy(), dtype=torch.float32)
-X_train = train_data[INPUTS].copy()
-if "LotFrontage" in INPUTS:
-    X_train.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
-print(X_train)
-for input in INPUTS:
-    # fixes exploding gradients!
-    X_train[input] = (X_train[input] - train_data[input].mean()) / train_data[
-        input
-    ].std()
-assert X_train.isna().any().any() == False
-X_train = torch.tensor(X_train.to_numpy(), dtype=torch.float32)
-print(X_train)
-print(f"{y_train.size()=}", f"{X_train.size()=}")
-assert X_train is not None
-assert y_train is not None
-assert type(X_train) == torch.Tensor
-assert type(y_train) == torch.Tensor
+
+def pipeline(df: pd.DataFrame) -> torch.Tensor:
+    y_train = torch.tensor(df[["SalePrice"]].to_numpy(), dtype=torch.float32)
+    X_train = df[INPUTS].copy()
+    if "LotFrontage" in INPUTS:
+        X_train.fillna(MEDIAN_LOT_FRONTAGE, inplace=True)
+    print(X_train)
+    for input in INPUTS:
+        # fixes exploding gradients!
+        X_train[input] = (X_train[input] - df[input].mean()) / df[input].std()
+    assert X_train.isna().any().any() == False
+    X_train = torch.tensor(X_train.to_numpy(), dtype=torch.float32)
+    print(X_train)
+    print(f"{y_train.size()=}", f"{X_train.size()=}")
+    assert X_train is not None
+    assert y_train is not None
+    assert type(X_train) == torch.Tensor
+    assert type(y_train) == torch.Tensor
+    return y_train, X_train
+
+
+y_train, X_train = pipeline(train_data)
 
 
 class MLP(nn.Module):
