@@ -78,23 +78,18 @@ optimizer = optim.SGD(model.parameters(), lr=0.00000005)
 epochs, losses = [], []
 best_loss = float("inf")
 best_epoch = 0
+best_model = None
 
 EPOCHS = 10000
-PATIENCE = 0
 CHECKPOINTS = 15
 for epoch in range(EPOCHS):
-    if PATIENCE > 3:
-        print(f"{PATIENCE=}")
-        break
     optimizer.zero_grad()
     output = model(X_train)
     loss = criterion(output, y_train)
     if epoch % (EPOCHS // CHECKPOINTS) == 0 and loss.item() < best_loss:
         best_loss = loss.item()
         best_epoch = epoch
-        PATIENCE = 0
-    elif epoch % (EPOCHS // CHECKPOINTS) == 0:
-        PATIENCE += 1
+        best_model = model.state_dict()
     loss.backward()
     optimizer.step()
     if epoch % (EPOCHS // CHECKPOINTS) == 0:
@@ -103,6 +98,7 @@ for epoch in range(EPOCHS):
         print(f"house-prices: E{epoch} L{loss.item()}")
 
 print(f"{best_epoch=}", f"{best_loss=}")
+model.load_state_dict(best_model)
 
 submission = pd.DataFrame()
 submission["Id"] = test_data.Id
