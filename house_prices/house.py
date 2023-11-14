@@ -59,12 +59,10 @@ class MLP(nn.Module):
     def __init__(self):
         super().__init__()
         N = len(INPUTS)
-        self.fc1 = nn.Linear(N, N)
-        self.fc2 = nn.Linear(N, 1)
+        self.fc1 = nn.Linear(N, 1)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = self.fc1(x)
         return x
 
 
@@ -112,6 +110,7 @@ with torch.no_grad():
         X_test[input] = (X_test[input] - test_data[input].mean()) / test_data[
             input
         ].std()
+    print(model(torch.tensor(X_test.to_numpy(), dtype=torch.float32)))
     submission["SalePrice"] = model(
         torch.tensor(X_test.to_numpy(), dtype=torch.float32)
     )
