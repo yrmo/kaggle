@@ -56,7 +56,7 @@ assert X_train is not None
 assert type(X_train) == torch.Tensor
 
 
-class MLP(nn.Module):
+class Model(nn.Module):
     def __init__(self):
         super().__init__()
         N = len(INPUTS)
@@ -67,7 +67,7 @@ class MLP(nn.Module):
         return x
 
 
-model = MLP()
+model = Model()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.000005)
 
