@@ -22,6 +22,7 @@ print(TRAIN)
 
 FEATURES = [
     "LotArea",
+    "LotFrontage",
 ]
 
 
@@ -42,6 +43,7 @@ class Model(nn.Module):
 
 def normalize(df: pd.DataFrame, features: list[str]) -> torch.Tensor:
     df = df[features].copy()
+    assert df.isna.any().any()
     for column in df.columns:
         df[column] = (TRAIN[column] - TRAIN[column].mean()) / TRAIN[column].std()
     return torch.tensor(df.to_numpy(), dtype=torch.float32)
@@ -54,11 +56,9 @@ def unnormalize(t: torch.Tensor) -> torch.Tensor:
 
 X = normalize(TRAIN, FEATURES)
 y = normalize(TRAIN, ["SalePrice"])
-print(X.shape, y.shape)
 
 epochs = []
 losses = []
-
 
 model = Model()
 criterion = nn.MSELoss()
