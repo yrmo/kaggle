@@ -25,7 +25,7 @@ def RUN(x):
 class Project:
     def check_abbreviations(self, competition):
         abbreviations = {
-            "house-prices": "house-prices-advanced-regression-techniques",
+            "house": "house-prices-advanced-regression-techniques",
         }
         if "_" in competition:
             competition = competition.replace("_", "-")
