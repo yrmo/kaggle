@@ -41,9 +41,14 @@ class Model(nn.Module):
         return x
 
 
+def clean(df):
+    df.fillna(TRAIN.LotFrontage.mean(), inplace=True)
+    return df
+
+
 def normalize(df: pd.DataFrame, features: list[str]) -> torch.Tensor:
     df = df[features].copy()
-    assert df.isna.any().any()
+    assert df.isna().any().any() == False
     for column in df.columns:
         df[column] = (TRAIN[column] - TRAIN[column].mean()) / TRAIN[column].std()
     return torch.tensor(df.to_numpy(), dtype=torch.float32)
@@ -54,7 +59,7 @@ def unnormalize(t: torch.Tensor) -> torch.Tensor:
     return torch.round(t)
 
 
-X = normalize(TRAIN, FEATURES)
+X = normalize(clean(TRAIN), FEATURES)
 y = normalize(TRAIN, ["SalePrice"])
 
 epochs = []
@@ -63,8 +68,8 @@ losses = []
 model = Model()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 100
-for epoch in range(EPOCHS):
+EPOCHS: Final = 1000
+for epoch in range(EPOCHS + 1):
     optimizer.zero_grad()
     output = model(X)
     loss = criterion(output, y)
@@ -75,8 +80,7 @@ for epoch in range(EPOCHS):
     losses.append(loss.item())
 
     if epoch % (EPOCHS // 10) == 0:
-        print(f"{loss.item()}")
-        print(f"{unnormalize(model(X)[0]).item()}")
+        print(f"house: E{epoch} L{loss.item()} EX{unnormalize(model(X)[0]).item()}")
 
 if not SUBMIT:
     plt.plot(epochs, losses)
