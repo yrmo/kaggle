@@ -79,7 +79,7 @@ val_losses = []
 model = Model()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 100
+EPOCHS: Final = 10000
 for epoch in range(EPOCHS + 1):
     optimizer.zero_grad()
     output = model(X)
@@ -99,9 +99,11 @@ for epoch in range(EPOCHS + 1):
 
 
 if not SUBMIT:
-    plt.plot(epochs, losses, epochs, val_losses)
+    plt.plot(epochs, losses, label="Training Loss")
+    plt.plot(epochs, val_losses, label="Validation Loss")
     plt.title("Kaggle House Price Prediction")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.savefig("./house/house.png")
+    plt.legend()
+    plt.savefig("./house/house.jpg")
     plt.show()
