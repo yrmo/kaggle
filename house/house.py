@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split  # type: ignore
 
 torch.manual_seed(90053)
 
@@ -61,7 +61,7 @@ def normalize(df: pd.DataFrame, features: list[str]) -> torch.Tensor:
 
 
 def unnormalize(t: torch.Tensor) -> torch.Tensor:
-    t = (t * TRAIN.SalePrice.std().item()) + TRAIN.SalePrice.mean().item()
+    t = (t * TRAIN.SalePrice.std()) + TRAIN.SalePrice.mean()
     return torch.round(t)
 
 
