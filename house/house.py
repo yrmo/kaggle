@@ -42,16 +42,21 @@ class Model(nn.Module):
 
 
 def clean(df):
-    df.fillna(TRAIN.LotFrontage.mean(), inplace=True)
-    return df
+    x = df.copy()
+    assert x[FEATURES].isna().any().any() == True
+    x["LotFrontage"] = x["LotFrontage"].fillna(TRAIN["LotFrontage"].mean())
+    assert x[FEATURES].isna().any().any() == False
+    return x
 
 
 def normalize(df: pd.DataFrame, features: list[str]) -> torch.Tensor:
     df = df[features].copy()
-    assert df.isna().any().any() == False
-    for column in df.columns:
-        df[column] = (TRAIN[column] - TRAIN[column].mean()) / TRAIN[column].std()
-    return torch.tensor(df.to_numpy(), dtype=torch.float32)
+    assert df[features].isna().any().any() == False
+    for feature in features:
+        df[feature] = (clean(TRAIN)[feature] - clean(TRAIN)[feature].mean()) / clean(
+            TRAIN
+        )[feature].std()
+    return torch.tensor(df[features].to_numpy(), dtype=torch.float32)
 
 
 def unnormalize(t: torch.Tensor) -> torch.Tensor:
