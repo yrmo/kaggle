@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from sklearn.model_selection import train_test_split
 
 torch.manual_seed(90053)
 
@@ -67,13 +68,18 @@ def unnormalize(t: torch.Tensor) -> torch.Tensor:
 X = normalize(clean(TRAIN), FEATURES)
 y = normalize(TRAIN, ["SalePrice"])
 
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.2, random_state=90053
+)
+
 epochs = []
 losses = []
+val_losses = []
 
 model = Model()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
-EPOCHS: Final = 1000
+EPOCHS: Final = 100
 for epoch in range(EPOCHS + 1):
     optimizer.zero_grad()
     output = model(X)
@@ -81,14 +87,19 @@ for epoch in range(EPOCHS + 1):
     loss.backward()
     optimizer.step()
 
-    epochs.append(epoch)
-    losses.append(loss.item())
-
     if epoch % (EPOCHS // 10) == 0:
-        print(f"house: E{epoch} L{loss.item()} EX{unnormalize(model(X)[0]).item()}")
+        epochs.append(epoch)
+        losses.append(loss.item())
+        with torch.no_grad():
+            val_loss = criterion(model(X_val), y_val)
+        print(
+            f"house: E{epoch} L{loss.item()} V{val_loss.item()} EX{unnormalize(model(X)[0]).item()}"
+        )
+        val_losses.append(val_loss.item())
+
 
 if not SUBMIT:
-    plt.plot(epochs, losses)
+    plt.plot(epochs, losses, epochs, val_losses)
     plt.title("Kaggle House Price Prediction")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
