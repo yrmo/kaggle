@@ -23,7 +23,7 @@ def RUN(x):
 
 
 class Project:
-    def check_abbreviations(self, competition):
+    def _check_abbreviations(self, competition):
         abbreviations = {
             "house": "house-prices-advanced-regression-techniques",
         }
@@ -39,7 +39,7 @@ class Project:
 
     def submit(self, competition):
         RUN(f"export SUBMIT=1; python -m {competition}")
-        competition = self.check_abbreviations(competition)
+        competition = self._check_abbreviations(competition)
         RUN(
             f'kaggle competitions submit -c {competition} -f working/submission.csv -m "{competition}"'
         )
@@ -51,7 +51,7 @@ class Project:
         RUN("python -m mypy .")
 
     def data(self, competition):
-        competition = self.check_abbreviations(competition)
+        competition = self._check_abbreviations(competition)
         COMP_DIR: Final = f"input/{competition}"
         os.makedirs(COMP_DIR, exist_ok=True)
 
