@@ -61,8 +61,9 @@ def normalize(df: pd.DataFrame, features: list[str]) -> torch.Tensor:
 
 
 def unnormalize(t: torch.Tensor) -> torch.Tensor:
-    t = (t * TRAIN.SalePrice.std()) + TRAIN.SalePrice.mean()
-    return torch.round(t)
+    with torch.no_grad():
+        t = torch.round((t * TRAIN.SalePrice.std()) + TRAIN.SalePrice.mean())
+    return t
 
 
 X = normalize(clean(TRAIN), FEATURES)
