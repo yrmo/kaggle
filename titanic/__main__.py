@@ -1,1 +1,1 @@
-import titanic.titanic
+import titanic.simple

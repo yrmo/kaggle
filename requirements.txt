@@ -2,3 +2,5 @@ torch
 numpy
 scikit-learn
 mypy # python -m mypy --install-types
+fire
+pandas

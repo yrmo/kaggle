@@ -6,7 +6,7 @@ This repo contains my public Kaggle competition code. The aim is to be able to r
 
 In Kaggle notebooks, the files are found at the root of the system at `/kaggle`, but generally I clone repos to the home directory `~/`. I use a symbolic link to map folder accesses at `/kaggle` to `~/kaggle` on our local machine. This is nice because it requires no code modifications for the code to work both on Kaggle and locally.
 
-### Ubuntu (untested)
+### Ubuntu
 
 ```sh
 sudo ln -s ~/kaggle /kaggle
